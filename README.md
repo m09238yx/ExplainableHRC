@@ -22,10 +22,10 @@ A mobile robot transports construction material in an environment where a human 
 
 ## Current status
 
-The repository now provides a base Docker development environment with ROS 2
-Jazzy, Gazebo Harmonic integration, RViz, and a browser-accessible Ubuntu
-desktop. No robot simulation scenario, ROS 2 package, or explanation system has
-been implemented yet.
+The repository provides a base Docker development environment with ROS 2 Jazzy,
+Gazebo Harmonic integration, RViz, and a browser-accessible Ubuntu desktop. It
+also includes a minimal differential-drive demo and a deterministic HRI safety
+scenario. Natural-language explanations are intentionally not implemented yet.
 
 ## Docker development environment
 
@@ -149,6 +149,27 @@ ros2 topic echo /model/minimal_robot/odometry nav_msgs/msg/Odometry
 
 This is an integration demo only; it does not introduce a ROS 2 package,
 custom node, navigation stack, or explanation component.
+
+### Deterministic HRI safety scenario
+
+Build the single ROS 2 package inside the running container:
+
+```bash
+docker compose -f docker/compose.yaml exec --user ubuntu ros2-desktop \
+  bash -lc 'cd /home/ubuntu/ros2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install'
+```
+
+Then run the scenario from the repository root:
+
+```bash
+./scripts/run_hri_safety_scenario.sh
+```
+
+The robot drives toward a goal at `(11.0, 0.0)` and stops when its centre is
+within the configurable `1.0 m` safety threshold of the static obstacle at
+`(8.0, 0.0)`. At the default `0.3 m/s`, it travels about seven metres for more
+than 20 seconds before stopping. Decision transitions are logged as JSON and published on
+`/safety_decision` as `std_msgs/msg/String`.
 
 This configuration forces Mesa software rendering for more predictable graphics
 inside Docker Desktop on macOS. It avoids X11 forwarding but may be slower than

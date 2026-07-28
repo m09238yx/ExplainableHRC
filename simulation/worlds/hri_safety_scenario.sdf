@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
-  <world name="minimal_robot_world">
+  <world name="hri_safety_scenario">
     <plugin filename="gz-sim-physics-system"
             name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-user-commands-system"
@@ -23,18 +23,12 @@
       <link name="ground_link">
         <collision name="ground_collision">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>20 20</size>
-            </plane>
+            <plane><normal>0 0 1</normal><size>30 20</size></plane>
           </geometry>
         </collision>
         <visual name="ground_visual">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>20 20</size>
-            </plane>
+            <plane><normal>0 0 1</normal><size>30 20</size></plane>
           </geometry>
           <material>
             <ambient>0.7 0.7 0.7 1</ambient>
@@ -44,35 +38,56 @@
       </link>
     </model>
 
+    <model name="route_obstacle">
+      <static>true</static>
+      <pose>8 0 0.4 0 0 0</pose>
+      <link name="obstacle_link">
+        <collision name="obstacle_collision">
+          <geometry><box><size>0.6 0.8 0.8</size></box></geometry>
+        </collision>
+        <visual name="obstacle_visual">
+          <geometry><box><size>0.6 0.8 0.8</size></box></geometry>
+          <material>
+            <ambient>0.8 0.15 0.1 1</ambient>
+            <diffuse>0.8 0.15 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="goal_marker">
+      <static>true</static>
+      <pose>11 0 0.02 0 0 0</pose>
+      <link name="goal_link">
+        <visual name="goal_visual">
+          <geometry><cylinder><radius>0.35</radius><length>0.04</length></cylinder></geometry>
+          <material>
+            <ambient>0.1 0.8 0.2 1</ambient>
+            <diffuse>0.1 0.8 0.2 1</diffuse>
+            <emissive>0.03 0.25 0.06 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
     <model name="minimal_robot">
       <pose>0 0 0.11 0 0 0</pose>
-
       <link name="chassis">
         <pose>0 0 0.10 0 0 0</pose>
         <inertial>
           <mass>5.0</mass>
           <inertia>
-            <ixx>0.0435</ixx>
-            <iyy>0.0727</iyy>
-            <izz>0.1042</izz>
+            <ixx>0.0435</ixx><iyy>0.0727</iyy><izz>0.1042</izz>
           </inertia>
         </inertial>
         <collision name="chassis_collision">
-          <geometry>
-            <box>
-              <size>0.4 0.3 0.12</size>
-            </box>
-          </geometry>
+          <geometry><box><size>0.4 0.3 0.12</size></box></geometry>
         </collision>
         <visual name="chassis_visual">
-          <geometry>
-            <box>
-              <size>0.4 0.3 0.12</size>
-            </box>
-          </geometry>
+          <geometry><box><size>0.55 0.38 0.14</size></box></geometry>
           <material>
-            <ambient>0.1 0.35 0.8 1</ambient>
-            <diffuse>0.1 0.35 0.8 1</diffuse>
+            <ambient>0.9 0.55 0.05 1</ambient>
+            <diffuse>0.9 0.55 0.05 1</diffuse>
           </material>
         </visual>
       </link>
@@ -81,39 +96,15 @@
         <pose>0 0.18 0 1.57079632679 0 0</pose>
         <inertial>
           <mass>0.5</mass>
-          <inertia>
-            <ixx>0.00135</ixx>
-            <iyy>0.00135</iyy>
-            <izz>0.0025</izz>
-          </inertia>
+          <inertia><ixx>0.00135</ixx><iyy>0.00135</iyy><izz>0.0025</izz></inertia>
         </inertial>
         <collision name="left_wheel_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>0.05</length>
-            </cylinder>
-          </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>1.0</mu>
-                <mu2>1.0</mu2>
-              </ode>
-            </friction>
-          </surface>
+          <geometry><cylinder><radius>0.1</radius><length>0.05</length></cylinder></geometry>
+          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
         </collision>
         <visual name="left_wheel_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>0.05</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <ambient>0.05 0.05 0.05 1</ambient>
-            <diffuse>0.05 0.05 0.05 1</diffuse>
-          </material>
+          <geometry><cylinder><radius>0.1</radius><length>0.05</length></cylinder></geometry>
+          <material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material>
         </visual>
       </link>
 
@@ -121,39 +112,15 @@
         <pose>0 -0.18 0 1.57079632679 0 0</pose>
         <inertial>
           <mass>0.5</mass>
-          <inertia>
-            <ixx>0.00135</ixx>
-            <iyy>0.00135</iyy>
-            <izz>0.0025</izz>
-          </inertia>
+          <inertia><ixx>0.00135</ixx><iyy>0.00135</iyy><izz>0.0025</izz></inertia>
         </inertial>
         <collision name="right_wheel_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>0.05</length>
-            </cylinder>
-          </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>1.0</mu>
-                <mu2>1.0</mu2>
-              </ode>
-            </friction>
-          </surface>
+          <geometry><cylinder><radius>0.1</radius><length>0.05</length></cylinder></geometry>
+          <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
         </collision>
         <visual name="right_wheel_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>0.05</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <ambient>0.05 0.05 0.05 1</ambient>
-            <diffuse>0.05 0.05 0.05 1</diffuse>
-          </material>
+          <geometry><cylinder><radius>0.1</radius><length>0.05</length></cylinder></geometry>
+          <material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material>
         </visual>
       </link>
 
@@ -161,55 +128,27 @@
         <pose>-0.15 0 -0.06 0 0 0</pose>
         <inertial>
           <mass>0.1</mass>
-          <inertia>
-            <ixx>0.000064</ixx>
-            <iyy>0.000064</iyy>
-            <izz>0.000064</izz>
-          </inertia>
+          <inertia><ixx>0.000064</ixx><iyy>0.000064</iyy><izz>0.000064</izz></inertia>
         </inertial>
         <collision name="rear_caster_collision">
-          <geometry>
-            <sphere>
-              <radius>0.04</radius>
-            </sphere>
-          </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>0.0</mu>
-                <mu2>0.0</mu2>
-              </ode>
-            </friction>
-          </surface>
+          <geometry><sphere><radius>0.04</radius></sphere></geometry>
+          <surface><friction><ode><mu>0.0</mu><mu2>0.0</mu2></ode></friction></surface>
         </collision>
         <visual name="rear_caster_visual">
-          <geometry>
-            <sphere>
-              <radius>0.04</radius>
-            </sphere>
-          </geometry>
+          <geometry><sphere><radius>0.04</radius></sphere></geometry>
         </visual>
       </link>
 
       <joint name="left_wheel_joint" type="revolute">
-        <parent>chassis</parent>
-        <child>left_wheel</child>
-        <axis>
-          <xyz expressed_in="__model__">0 1 0</xyz>
-        </axis>
+        <parent>chassis</parent><child>left_wheel</child>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz></axis>
       </joint>
-
       <joint name="right_wheel_joint" type="revolute">
-        <parent>chassis</parent>
-        <child>right_wheel</child>
-        <axis>
-          <xyz expressed_in="__model__">0 1 0</xyz>
-        </axis>
+        <parent>chassis</parent><child>right_wheel</child>
+        <axis><xyz expressed_in="__model__">0 1 0</xyz></axis>
       </joint>
-
       <joint name="rear_caster_joint" type="fixed">
-        <parent>chassis</parent>
-        <child>rear_caster</child>
+        <parent>chassis</parent><child>rear_caster</child>
       </joint>
 
       <plugin filename="gz-sim-diff-drive-system"
