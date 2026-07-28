@@ -1,5 +1,5 @@
 # Docker
 
-This directory is reserved for future Docker-based development environment files.
-
-No Dockerfiles or container configuration have been implemented yet.
+This directory contains the base browser-accessible ROS 2 development
+environment. See the repository README for build, startup, and validation
+instructions.
