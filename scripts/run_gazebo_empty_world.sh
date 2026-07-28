@@ -58,8 +58,10 @@ docker compose -f "${compose_file}" exec \
 
         cleanup() {
             trap - EXIT INT TERM
-            kill "${bridge_pid:-}" "${gazebo_pid:-}" 2>/dev/null || true
-            wait "${bridge_pid:-}" "${gazebo_pid:-}" 2>/dev/null || true
+            kill "${motion_pid:-}" "${bridge_pid:-}" "${gazebo_pid:-}" \
+                2>/dev/null || true
+            wait "${motion_pid:-}" "${bridge_pid:-}" "${gazebo_pid:-}" \
+                2>/dev/null || true
         }
         trap cleanup EXIT INT TERM
 
@@ -89,14 +91,40 @@ docker compose -f "${compose_file}" exec \
 
         printf "\nMinimal robot demo is running.\n"
         printf "Open the desktop at http://127.0.0.1:6080/\n"
-        printf "In a browser-desktop terminal, run:\n\n"
-        printf "Forward:\n"
-        printf "  ros2 topic pub --rate 10 /model/minimal_robot/cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 0.8}, angular: {z: 0.0}}\"\n\n"
+        printf "The robot will wait 2 seconds, drive straight at 0.5 m/s for\n"
+        printf "21 seconds (about 10 m), and then stop automatically.\n\n"
+        printf "For an additional manual test in a browser-desktop terminal:\n"
+        printf "  ros2 topic pub --rate 10 /model/minimal_robot/cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 0.5}, angular: {z: 0.0}}\"\n\n"
         printf "Stop (after pressing Ctrl-C in the active publisher):\n"
         printf "  ros2 topic pub --once /model/minimal_robot/cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 0.0}, angular: {z: 0.0}}\"\n\n"
         printf "Inspect odometry:\n"
         printf "  ros2 topic echo /model/minimal_robot/odometry nav_msgs/msg/Odometry\n\n"
         printf "Press Ctrl-C here to stop Gazebo and the bridges.\n\n"
+
+        (
+            sleep 2
+            printf "Starting automatic forward motion...\n"
+            set +e
+            timeout 21s ros2 topic pub --rate 10 \
+                /model/minimal_robot/cmd_vel \
+                geometry_msgs/msg/Twist \
+                "{linear: {x: 0.5}, angular: {z: 0.0}}" \
+                >/tmp/minimal_robot_motion.log 2>&1
+            publisher_status=$?
+            set -e
+            if [[ "${publisher_status}" -ne 0 &&
+                  "${publisher_status}" -ne 124 ]]; then
+                cat /tmp/minimal_robot_motion.log >&2
+                exit "${publisher_status}"
+            fi
+            ros2 topic pub --once \
+                /model/minimal_robot/cmd_vel \
+                geometry_msgs/msg/Twist \
+                "{linear: {x: 0.0}, angular: {z: 0.0}}" \
+                >/dev/null
+            printf "Automatic forward motion complete; robot stopped.\n"
+        ) &
+        motion_pid=$!
 
         wait "${gazebo_pid}"
     '

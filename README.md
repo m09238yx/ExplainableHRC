@@ -119,12 +119,16 @@ terminal:
 ```
 
 The demo loads a primitive differential-drive robot and bridges only its velocity
-command and odometry topics. In a browser-desktop terminal, move the robot with:
+command and odometry topics. After Gazebo starts, the robot waits two seconds,
+drives straight at `0.5 m/s` for 21 seconds (about 10 metres), and stops
+automatically.
+
+For an additional manual test, use a browser-desktop terminal:
 
 ```bash
 ros2 topic pub --rate 10 /model/minimal_robot/cmd_vel \
   geometry_msgs/msg/Twist \
-  "{linear: {x: 0.8}, angular: {z: 0.0}}"
+  "{linear: {x: 0.5}, angular: {z: 0.0}}"
 ```
 
 Keep this publisher running for a longer straight-line travel distance.
