@@ -1,0 +1,49 @@
+# ROS 2
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.python-version
+
+# Gazebo
+.gazebo/
+gazebo/cache/
+gazebo/log/
+gz/cache/
+gz/log/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VS Code
+.vscode/
+
+# Docker temporary and override files
+docker/.tmp/
+docker/tmp/
+docker-compose.override.yml
+compose.override.yml
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Test coverage
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
