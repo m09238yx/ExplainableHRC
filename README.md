@@ -109,15 +109,42 @@ gz sim -v 4 empty.sdf
 rviz2
 ```
 
-For the smallest Gazebo smoke test, start the container, open the browser
-desktop, and run the repository launcher from a host terminal:
+### Minimal ROS 2–Gazebo robot demo
+
+Start the container, open the browser desktop, and launch the demo from a host
+terminal:
 
 ```bash
 ./scripts/run_gazebo_empty_world.sh
 ```
 
-This launches Gazebo's installed official `empty.sdf` example. The repository
-does not provide a custom world, robot, or model.
+The demo loads a primitive differential-drive robot and bridges only its velocity
+command and odometry topics. In a browser-desktop terminal, move the robot with:
+
+```bash
+ros2 topic pub --rate 10 /model/minimal_robot/cmd_vel \
+  geometry_msgs/msg/Twist \
+  "{linear: {x: 0.8}, angular: {z: 0.0}}"
+```
+
+Keep this publisher running for a longer straight-line travel distance.
+
+Press `Ctrl-C` in the active publisher, then send a stop command:
+
+```bash
+ros2 topic pub --once /model/minimal_robot/cmd_vel \
+  geometry_msgs/msg/Twist \
+  "{linear: {x: 0.0}, angular: {z: 0.0}}"
+```
+
+View the robot odometry with:
+
+```bash
+ros2 topic echo /model/minimal_robot/odometry nav_msgs/msg/Odometry
+```
+
+This is an integration demo only; it does not introduce a ROS 2 package,
+custom node, navigation stack, or explanation component.
 
 This configuration forces Mesa software rendering for more predictable graphics
 inside Docker Desktop on macOS. It avoids X11 forwarding but may be slower than
