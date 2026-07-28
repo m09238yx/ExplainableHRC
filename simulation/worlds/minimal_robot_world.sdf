@@ -191,6 +191,40 @@
         </visual>
       </link>
 
+      <link name="front_caster">
+        <pose>0.15 0 -0.06 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000064</ixx>
+            <iyy>0.000064</iyy>
+            <izz>0.000064</izz>
+          </inertia>
+        </inertial>
+        <collision name="front_caster_collision">
+          <geometry>
+            <sphere>
+              <radius>0.04</radius>
+            </sphere>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.0</mu>
+                <mu2>0.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="front_caster_visual">
+          <geometry>
+            <sphere>
+              <radius>0.04</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+
       <joint name="left_wheel_joint" type="revolute">
         <parent>chassis</parent>
         <child>left_wheel</child>
@@ -210,6 +244,11 @@
       <joint name="rear_caster_joint" type="fixed">
         <parent>chassis</parent>
         <child>rear_caster</child>
+      </joint>
+
+      <joint name="front_caster_joint" type="fixed">
+        <parent>chassis</parent>
+        <child>front_caster</child>
       </joint>
 
       <plugin filename="gz-sim-diff-drive-system"
