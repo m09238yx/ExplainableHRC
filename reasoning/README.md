@@ -57,6 +57,20 @@ proximity_explain_why(State, stop, Explanation).
 proximity_explain_why_not(State, continue, Explanation).
 ```
 
+### Run the proximity dialogue
+
+Start the menu-based dialogue with the default state:
+
+```bash
+swipl -q -s reasoning/s02_proximity_reasoning.pl -g proximity_chat -t halt
+```
+
+The dialogue can report the current decision, answer Why and Why-not, list the
+facts, identify the applied rule, and print the complete proof tree. Options
+`1` to `6` ask questions and option `7` exits. A specific state can instead be
+passed to `proximity_chat/1`; the same immutable state is used for every turn
+in that session.
+
 The decision priority is:
 
 ```text

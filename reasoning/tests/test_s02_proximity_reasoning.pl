@@ -250,4 +250,88 @@ test(boundary_caution_distance_is_slow) :-
     proximity_decision(State, slow, [caution_zone]).
 
 
+test(dialogue_supports_why_for_all_six_states) :-
+    Cases = [
+        _{worker_distance:4.0},
+        _{worker_distance:2.2},
+        _{worker_distance:1.42, previous_state:slow},
+        _{worker_distance:2.0, previous_state:stop},
+        _{worker_distance:2.0, previous_state:wait,
+          clearance_duration:1.0, resume_complete:false},
+        _{goal_reached:true}
+    ],
+    forall(
+        member(Overrides, Cases),
+        (state(Overrides, State),
+         proximity_dialogue_reply(State, why_decision, Text,
+                                  why(decision(_), _, _, _)),
+         assertion(string(Text)),
+         assertion(Text \= ""))
+    ).
+
+
+test(dialogue_reports_grounded_stop_details) :-
+    state(_{worker_distance:1.42, previous_state:slow}, State),
+    proximity_dialogue_reply(State, show_decision, DecisionText,
+                             state_summary(stop, [minimum_separation])),
+    proximity_dialogue_reply(State, why_decision, WhyText, Why),
+    proximity_dialogue_reply(State, why_not(continue), WhyNotText, WhyNot),
+    assertion(sub_string(DecisionText, _, _, _, '1.42 m')),
+    assertion(sub_string(WhyText, _, _, _, '1.50 m')),
+    assertion(sub_string(WhyNotText, _, _, _, 'minimum_separation')),
+    Why = why(decision(stop), minimum_separation, _, _),
+    WhyNot = why_not(alternative(continue), selected(stop), _, _, _).
+
+
+test(dialogue_exposes_facts_rule_and_complete_proof) :-
+    state(_{worker_distance:1.42, previous_state:slow}, State),
+    proximity_dialogue_reply(State, show_facts, FactsText, facts(Facts)),
+    proximity_dialogue_reply(State, show_rule, RuleText,
+                             applied_rule(stop_at_minimum_separation)),
+    proximity_dialogue_reply(State, show_proof, ProofText, Proof),
+    assertion(memberchk(worker_distance(1.42), Facts)),
+    assertion(sub_string(FactsText, _, _, _, 'worker_distance(1.42)')),
+    assertion(sub_string(RuleText, _, _, _,
+                         'stop_at_minimum_separation')),
+    assertion(sub_string(ProofText, _, _, _,
+                         'selected_action(stop) [rule: stop_at_minimum_separation]')),
+    assertion(sub_string(ProofText, _, _, _,
+                         'worker_distance(1.42) [fact]')),
+    assertion(sub_string(ProofText, _, _, _,
+                         'less_than_or_equal(1.42,1.5) [builtin]')),
+    Proof = proof(selected_action(stop),
+                  rule(stop_at_minimum_separation), _).
+
+
+test(interactive_proximity_chat_handles_multiple_turns) :-
+    state(_{worker_distance:1.42, previous_state:slow}, State),
+    open_string('1\n2\n3\n4\n5\n6\n7\n', Input),
+    with_output_to(
+        string(Output),
+        (current_output(Stream), proximity_chat(State, Input, Stream))),
+    close(Input),
+    assertion(sub_string(Output, _, _, _, 'Current decision: stop')),
+    assertion(sub_string(Output, _, _, _, 'I stopped because')),
+    assertion(sub_string(Output, _, _, _, 'I did not continue')),
+    assertion(sub_string(Output, _, _, _, 'Facts used for this decision')),
+    assertion(sub_string(Output, _, _, _,
+                         'Applied rule: stop_at_minimum_separation')),
+    assertion(sub_string(Output, _, _, _,
+                         'selected_action(stop) [rule: stop_at_minimum_separation]')),
+    assertion(sub_string(Output, _, _, _, 'Dialogue ended')).
+
+
+test(interactive_proximity_chat_accepts_periods_and_invalid_input) :-
+    state(_{worker_distance:2.2}, State),
+    open_string('hello\n2.\n7.\n', Input),
+    with_output_to(
+        string(Output),
+        (current_output(Stream), proximity_chat(State, Input, Stream))),
+    close(Input),
+    assertion(sub_string(Output, _, _, _,
+                         'Please choose a number from 1 to 7')),
+    assertion(sub_string(Output, _, _, _, 'I slowed because')),
+    assertion(sub_string(Output, _, _, _, 'Dialogue ended')).
+
+
 :- end_tests(s02_proximity_reasoning).
