@@ -24,6 +24,25 @@ if [[ -z "$(docker compose -f "${compose_file}" ps --status running -q ros2-desk
     exit 1
 fi
 
+cleanup_container_demo() {
+    docker compose -f "${compose_file}" exec --no-TTY ros2-desktop \
+        bash -lc '
+            pid_file=/tmp/explainable_hrc_crossing.pids
+            if [[ -f "${pid_file}" ]]; then
+                while IFS= read -r process_group; do
+                    if [[ "${process_group}" =~ ^[0-9]+$ ]]; then
+                        kill -- "-${process_group}" 2>/dev/null || true
+                    fi
+                done < "${pid_file}"
+                rm -f "${pid_file}"
+            fi
+        ' >/dev/null 2>&1 || true
+}
+
+# Recover from a previous host-side interruption before starting a new run.
+cleanup_container_demo
+trap cleanup_container_demo EXIT INT TERM
+
 docker compose -f "${compose_file}" cp \
     "${world_file}" "ros2-desktop:${container_world}"
 
@@ -61,6 +80,7 @@ docker compose -f "${compose_file}" exec \
             done
             wait "${safety_pid:-}" "${worker_pid:-}" \
                 "${bridge_pid:-}" "${gazebo_pid:-}" 2>/dev/null || true
+            rm -f /tmp/explainable_hrc_crossing.pids
         }
         trap cleanup EXIT INT TERM
 
@@ -100,18 +120,32 @@ docker compose -f "${compose_file}" exec \
             -p obstacle_y:=-3.0 \
             -p goal_x:=11.0 \
             -p goal_y:=0.0 \
-            -p safety_threshold:=1.5 \
-            -p resume_margin:=0.3 \
+            -p caution_distance:=3.0 \
+            -p stop_distance:=1.5 \
+            -p resume_distance:=1.8 \
+            -p clearance_wait:=1.0 \
             -p forward_speed:=0.3 \
+            -p minimum_speed:=0.1 \
+            -p acceleration_rate:=0.15 \
+            -p deceleration_rate:=0.3 \
             -p control_rate:=10.0 \
             -p goal_tolerance:=0.2 &
         safety_pid=$!
 
+        printf "%s\n" \
+            "${safety_pid}" "${worker_pid}" \
+            "${bridge_pid}" "${gazebo_pid}" \
+            > /tmp/explainable_hrc_crossing.pids
+
         printf "\nConstruction crossing scenario S02 is running.\n"
         printf "Open the desktop at http://127.0.0.1:6080/\n"
         printf "The worker begins crossing after 15 seconds and pauses\n"
-        printf "in the robot lane for 6 seconds. The moving red circle\n"
-        printf "shows the 1.5 m stop zone. The robot resumes at 1.8 m.\n\n"
+        printf "in the robot lane for 10 seconds. The yellow circle shows\n"
+        printf "the 3.0 m caution zone; red shows the 1.5 m stop zone.\n"
+        printf "The six safety states are:\n"
+        printf "GO, SLOW, STOP, WAIT, RESUME, and GOAL_REACHED.\n"
+        printf "The robot slows within 3.0 m, stops at 1.5 m, waits\n"
+        printf "one second after clearing 1.8 m, then resumes smoothly.\n\n"
         printf "Worker pose:    /worker/pose\n"
         printf "Robot odometry: /model/minimal_robot/odometry\n"
         printf "Decisions:      /safety_decision\n\n"

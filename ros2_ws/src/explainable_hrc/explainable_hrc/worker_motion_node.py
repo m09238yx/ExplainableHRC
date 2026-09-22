@@ -61,8 +61,8 @@ class WorkerMotionNode(Node):
         self.declare_parameter('end_y', 3.0)
         self.declare_parameter('start_delay', 15.0)
         self.declare_parameter('crossing_duration', 10.0)
-        self.declare_parameter('crossing_pause', 6.0)
-        self.declare_parameter('end_pause', 5.0)
+        self.declare_parameter('crossing_pause', 10.0)
+        self.declare_parameter('end_pause', 60.0)
         self.declare_parameter('update_rate', 10.0)
 
         self.entity_name = str(self.get_parameter('entity_name').value)

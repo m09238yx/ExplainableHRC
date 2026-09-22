@@ -32,9 +32,17 @@ Run the construction-site worker-crossing demo from the repository root:
 ./scripts/run_construction_crossing_scenario.sh
 ```
 
-The robot follows the green route. It stops when the moving worker comes within
-`1.5 m`, resumes after the worker moves beyond `1.8 m`, and stops at the goal.
-The red disc around the worker shows the `1.5 m` stop zone.
+The robot follows the green route through six visible safety states:
+`GO`, `SLOW`, `STOP`, `WAIT`, `RESUME`, and `GOAL_REACHED`. It slows inside the
+`3.0 m` caution zone, stops at `1.5 m`, waits one second after the worker clears
+`1.8 m`, resumes with bounded acceleration, and stops at the goal. The yellow
+disc shows the `3.0 m` caution zone and the red disc shows the `1.5 m` stop
+zone. Structured JSON decision traces are published continuously on
+`/safety_decision`.
+
+The worker begins crossing after 15 seconds, pauses in the robot lane for 10
+seconds so the stop is easy to observe, then remains at the far side while the
+robot completes the task.
 
 Stop Docker when finished:
 
