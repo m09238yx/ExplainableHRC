@@ -36,13 +36,6 @@ The robot follows the green route. It stops when the moving worker comes within
 `1.5 m`, resumes after the worker moves beyond `1.8 m`, and stops at the goal.
 The red disc around the worker shows the `1.5 m` stop zone.
 
-Other available demos:
-
-```bash
-./scripts/run_hri_safety_scenario.sh
-./scripts/run_gazebo_empty_world.sh
-```
-
 Stop Docker when finished:
 
 ```bash
