@@ -23,6 +23,8 @@ setup(
         'console_scripts': [
             'safety_decision_node = '
             'explainable_hrc.safety_decision_node:main',
+            'worker_motion_node = '
+            'explainable_hrc.worker_motion_node:main',
         ],
     },
 )

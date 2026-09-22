@@ -5,7 +5,7 @@ import math
 from typing import Optional
 
 import rclpy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -19,18 +19,25 @@ class SafetyDecisionNode(Node):
 
         self.declare_parameter('obstacle_x', 8.0)
         self.declare_parameter('obstacle_y', 0.0)
+        self.declare_parameter('obstacle_pose_topic', '')
+        self.declare_parameter('obstacle_type', 'static_box')
         self.declare_parameter('goal_x', 11.0)
         self.declare_parameter('goal_y', 0.0)
         self.declare_parameter('safety_threshold', 1.0)
+        self.declare_parameter('resume_margin', 0.0)
         self.declare_parameter('forward_speed', 0.3)
         self.declare_parameter('control_rate', 10.0)
         self.declare_parameter('goal_tolerance', 0.2)
 
         self.obstacle_x = self._double_parameter('obstacle_x')
         self.obstacle_y = self._double_parameter('obstacle_y')
+        self.obstacle_pose_topic = str(
+            self.get_parameter('obstacle_pose_topic').value)
+        self.obstacle_type = str(self.get_parameter('obstacle_type').value)
         self.goal_x = self._double_parameter('goal_x')
         self.goal_y = self._double_parameter('goal_y')
         self.safety_threshold = self._positive_parameter('safety_threshold')
+        self.resume_margin = self._nonnegative_parameter('resume_margin')
         self.forward_speed = self._positive_parameter('forward_speed')
         self.control_rate = self._positive_parameter('control_rate')
         self.goal_tolerance = self._positive_parameter('goal_tolerance')
@@ -49,6 +56,14 @@ class SafetyDecisionNode(Node):
             self._odometry_callback,
             10,
         )
+        self.obstacle_pose_subscription = None
+        if self.obstacle_pose_topic:
+            self.obstacle_pose_subscription = self.create_subscription(
+                PoseStamped,
+                self.obstacle_pose_topic,
+                self._obstacle_pose_callback,
+                10,
+            )
         self.control_timer = self.create_timer(
             1.0 / self.control_rate, self._control)
 
@@ -73,9 +88,19 @@ class SafetyDecisionNode(Node):
             raise ValueError(f'Parameter {name} must be greater than zero')
         return value
 
+    def _nonnegative_parameter(self, name: str) -> float:
+        value = self._double_parameter(name)
+        if value < 0.0:
+            raise ValueError(f'Parameter {name} must not be negative')
+        return value
+
     def _odometry_callback(self, message: Odometry) -> None:
         self.robot_x = message.pose.pose.position.x
         self.robot_y = message.pose.pose.position.y
+
+    def _obstacle_pose_callback(self, message: PoseStamped) -> None:
+        self.obstacle_x = message.pose.position.x
+        self.obstacle_y = message.pose.position.y
 
     def _control(self) -> None:
         if self.robot_x is None or self.robot_y is None:
@@ -91,7 +116,14 @@ class SafetyDecisionNode(Node):
         if distance_to_goal <= self.goal_tolerance:
             decision = 'GOAL_REACHED'
             command_linear_x = 0.0
-        elif distance_to_obstacle <= self.safety_threshold:
+        elif (
+            distance_to_obstacle <= self.safety_threshold
+            or (
+                self.previous_decision == 'STOP'
+                and distance_to_obstacle
+                <= self.safety_threshold + self.resume_margin
+            )
+        ):
             decision = 'STOP'
             command_linear_x = 0.0
         else:
@@ -126,9 +158,11 @@ class SafetyDecisionNode(Node):
             'goal_y': self.goal_y,
             'obstacle_x': self.obstacle_x,
             'obstacle_y': self.obstacle_y,
+            'obstacle_type': self.obstacle_type,
             'distance_to_goal': distance_to_goal,
             'distance_to_obstacle': distance_to_obstacle,
             'safety_threshold': self.safety_threshold,
+            'resume_threshold': self.safety_threshold + self.resume_margin,
             'decision': decision,
             'command_linear_x': command_linear_x,
         }

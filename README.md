@@ -1,189 +1,50 @@
 # ExplainableHRC
 
-ExplainableHRC is a research project exploring dialogue-based interactive explanations for safety-related robot decisions in human–robot collaboration.
+## Start Docker
 
-## Initial HRI scenario
+Requirements:
 
-A mobile robot transports construction material in an environment where a human worker and obstacles may affect its safety decisions. Depending on the situation, the robot may stop, slow down, wait, replan, or continue. A user can ask why the robot made a particular decision.
+- Docker Desktop
+- Docker Compose v2
 
-## Planned explanation types
-
-- Causal explanations
-- Contrastive explanations
-- Counterfactual explanations
-- Follow-up dialogue
-
-## Planned technology
-
-- ROS 2
-- Gazebo
-- Python
-- Docker
-
-## Current status
-
-The repository provides a base Docker development environment with ROS 2 Jazzy,
-Gazebo Harmonic integration, RViz, and a browser-accessible Ubuntu desktop. It
-also includes a minimal differential-drive demo and a deterministic HRI safety
-scenario. Natural-language explanations are intentionally not implemented yet.
-
-## Docker development environment
-
-### Requirements
-
-- Docker Desktop with Docker Compose v2
-- On Apple Silicon, Docker Desktop configured to use Linux ARM64 containers
-- At least 4 GB of memory available to Docker Desktop; more may be useful for
-  Gazebo and RViz
-
-The environment pins ROS 2 to **Jazzy** on Ubuntu 24.04. Gazebo is pinned by the
-Jazzy `ros_gz` package family to the compatible **Gazebo Harmonic** release.
-The upstream desktop image supports both `linux/arm64` and `linux/amd64`; Compose
-uses the host's native architecture by default.
-
-### Build and start with Docker Compose
-
-Start Docker Desktop, open a terminal, and change to the repository root:
-
-```bash
-cd ExplainableHRC
-```
-
-Build the image:
+From the repository root, build and start the container:
 
 ```bash
 docker compose -f docker/compose.yaml build
-```
-
-Start the container in the background:
-
-```bash
 docker compose -f docker/compose.yaml up -d
 ```
 
-Open <http://127.0.0.1:6080/> in a browser. The initial desktop and VNC password
-is `ubuntu`. The service binds only to localhost.
+Open the browser desktop at <http://127.0.0.1:6080/>. The initial password is
+`ubuntu`.
 
-Check the container status:
-
-```bash
-docker compose -f docker/compose.yaml ps
-```
-
-Follow its logs:
-
-```bash
-docker compose -f docker/compose.yaml logs -f ros2-desktop
-```
-
-Open an interactive shell inside the running container:
-
-```bash
-docker compose -f docker/compose.yaml exec ros2-desktop bash
-```
-
-After changing the Dockerfile, rebuild and recreate the container with:
-
-```bash
-docker compose -f docker/compose.yaml up -d --build
-```
-
-The host directory `ros2_ws` is mounted at `/home/ubuntu/ros2_ws`, so source and
-build results persist outside the container.
-
-Validate the command-line tools:
-
-```bash
-docker compose -f docker/compose.yaml exec ros2-desktop printenv ROS_DISTRO
-docker compose -f docker/compose.yaml exec ros2-desktop bash -lc 'ros2 --help'
-docker compose -f docker/compose.yaml exec ros2-desktop bash -lc 'gz sim --versions'
-docker compose -f docker/compose.yaml exec ros2-desktop bash -lc 'command -v rviz2'
-docker compose -f docker/compose.yaml exec ros2-desktop \
-  bash -lc 'findmnt --target /home/ubuntu/ros2_ws && test -d /home/ubuntu/ros2_ws/src'
-```
-
-Gazebo and RViz can be launched from a terminal inside the browser desktop:
-
-```bash
-gz sim -v 4 empty.sdf
-rviz2
-```
-
-### Minimal ROS 2–Gazebo robot demo
-
-Start the container, open the browser desktop, and launch the demo from a host
-terminal:
-
-```bash
-./scripts/run_gazebo_empty_world.sh
-```
-
-The demo loads a primitive differential-drive robot and bridges only its velocity
-command and odometry topics. After Gazebo starts, the robot waits two seconds,
-drives straight at `0.5 m/s` for 21 seconds (about 10 metres), and stops
-automatically.
-
-For an additional manual test, use a browser-desktop terminal:
-
-```bash
-ros2 topic pub --rate 10 /model/minimal_robot/cmd_vel \
-  geometry_msgs/msg/Twist \
-  "{linear: {x: 0.5}, angular: {z: 0.0}}"
-```
-
-Keep this publisher running for a longer straight-line travel distance.
-
-Press `Ctrl-C` in the active publisher, then send a stop command:
-
-```bash
-ros2 topic pub --once /model/minimal_robot/cmd_vel \
-  geometry_msgs/msg/Twist \
-  "{linear: {x: 0.0}, angular: {z: 0.0}}"
-```
-
-View the robot odometry with:
-
-```bash
-ros2 topic echo /model/minimal_robot/odometry nav_msgs/msg/Odometry
-```
-
-This is an integration demo only; it does not introduce a ROS 2 package,
-custom node, navigation stack, or explanation component.
-
-### Deterministic HRI safety scenario
-
-Build the single ROS 2 package inside the running container:
+Build the ROS 2 workspace:
 
 ```bash
 docker compose -f docker/compose.yaml exec --user ubuntu ros2-desktop \
   bash -lc 'cd /home/ubuntu/ros2_ws && source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --symlink-install'
 ```
 
-Then run the scenario from the repository root:
+## Run the demo
+
+Run the construction-site worker-crossing demo from the repository root:
+
+```bash
+./scripts/run_construction_crossing_scenario.sh
+```
+
+The robot follows the green route. It stops when the moving worker comes within
+`1.5 m`, resumes after the worker moves beyond `1.8 m`, and stops at the goal.
+The red disc around the worker shows the `1.5 m` stop zone.
+
+Other available demos:
 
 ```bash
 ./scripts/run_hri_safety_scenario.sh
+./scripts/run_gazebo_empty_world.sh
 ```
 
-The robot drives toward a goal at `(11.0, 0.0)` and stops when its centre is
-within the configurable `1.0 m` safety threshold of the static obstacle at
-`(8.0, 0.0)`. At the default `0.3 m/s`, it travels about seven metres for more
-than 20 seconds before stopping. Decision transitions are logged as JSON and published on
-`/safety_decision` as `std_msgs/msg/String`.
-
-This configuration forces Mesa software rendering for more predictable graphics
-inside Docker Desktop on macOS. It avoids X11 forwarding but may be slower than
-native GPU rendering.
-
-Stop and remove the container and Compose network:
+Stop Docker when finished:
 
 ```bash
 docker compose -f docker/compose.yaml down
 ```
-
-This does not delete the host-mounted `ros2_ws` directory.
-
-## Future development
-
-Future work will create a minimal HRI scenario, add decision logging and
-explanation prototypes, and support dialogue-based interaction and evaluation.
