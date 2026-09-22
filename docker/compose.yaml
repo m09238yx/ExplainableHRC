@@ -18,6 +18,7 @@ services:
       LIBGL_ALWAYS_SOFTWARE: "1"
     volumes:
       - ../ros2_ws:/home/ubuntu/ros2_ws
+      - ../reasoning:/home/ubuntu/ExplainableHRC/reasoning:ro
     stdin_open: true
     tty: true
     restart: unless-stopped

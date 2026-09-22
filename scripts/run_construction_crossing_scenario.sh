@@ -68,17 +68,23 @@ docker compose -f "${compose_file}" exec \
             printf "explainable_hrc is not installed in the workspace.\n" >&2
             exit 1
         fi
+        if ! command -v swipl >/dev/null 2>&1; then
+            printf "SWI-Prolog is missing. Rebuild the Docker image.\n" >&2
+            exit 1
+        fi
 
         cleanup() {
             trap - EXIT INT TERM
             for process_group in \
-                "${safety_pid:-}" "${worker_pid:-}" \
+                "${prolog_bridge_pid:-}" "${safety_pid:-}" \
+                "${worker_pid:-}" \
                 "${bridge_pid:-}" "${gazebo_pid:-}"; do
                 if [[ -n "${process_group}" ]]; then
                     kill -- "-${process_group}" 2>/dev/null || true
                 fi
             done
-            wait "${safety_pid:-}" "${worker_pid:-}" \
+            wait "${prolog_bridge_pid:-}" "${safety_pid:-}" \
+                "${worker_pid:-}" \
                 "${bridge_pid:-}" "${gazebo_pid:-}" 2>/dev/null || true
             rm -f /tmp/explainable_hrc_crossing.pids
         }
@@ -132,8 +138,11 @@ docker compose -f "${compose_file}" exec \
             -p goal_tolerance:=0.2 &
         safety_pid=$!
 
+        setsid ros2 run explainable_hrc prolog_explanation_bridge &
+        prolog_bridge_pid=$!
+
         printf "%s\n" \
-            "${safety_pid}" "${worker_pid}" \
+            "${prolog_bridge_pid}" "${safety_pid}" "${worker_pid}" \
             "${bridge_pid}" "${gazebo_pid}" \
             > /tmp/explainable_hrc_crossing.pids
 
@@ -148,9 +157,12 @@ docker compose -f "${compose_file}" exec \
         printf "one second after clearing 1.8 m, then resumes smoothly.\n\n"
         printf "Worker pose:    /worker/pose\n"
         printf "Robot odometry: /model/minimal_robot/odometry\n"
-        printf "Decisions:      /safety_decision\n\n"
+        printf "Decisions:      /safety_decision\n"
+        printf "Prolog output:  /prolog_explanation\n\n"
         printf "Inspect decisions:\n"
         printf "  ros2 topic echo /safety_decision std_msgs/msg/String\n\n"
+        printf "Inspect Prolog explanations:\n"
+        printf "  ros2 topic echo /prolog_explanation std_msgs/msg/String\n\n"
         printf "Press Ctrl-C here to stop all scenario processes.\n\n"
 
         wait "${gazebo_pid}"

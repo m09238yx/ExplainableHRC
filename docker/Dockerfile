@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-dev-tools \
         ros-jazzy-ros-gz \
         ros-jazzy-rviz2 \
+        swi-prolog-nox \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /home/ubuntu/ros2_ws/src \

@@ -40,6 +40,15 @@ disc shows the `3.0 m` caution zone and the red disc shows the `1.5 m` stop
 zone. Structured JSON decision traces are published continuously on
 `/safety_decision`.
 
+A read-only bridge independently checks each latest trace with Prolog and
+publishes its decision, consistency result, Why, and Why-not terms on
+`/prolog_explanation`. It never publishes robot motion commands.
+
+```bash
+docker compose -f docker/compose.yaml exec ros2-desktop bash -lc \
+  'source /opt/ros/jazzy/setup.bash && source /home/ubuntu/ros2_ws/install/setup.bash && ros2 topic echo /prolog_explanation std_msgs/msg/String'
+```
+
 The worker begins crossing after 15 seconds, pauses in the robot lane for 10
 seconds so the stop is easy to observe, then remains at the far side while the
 robot completes the task.

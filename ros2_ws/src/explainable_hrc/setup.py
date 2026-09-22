@@ -25,6 +25,8 @@ setup(
             'explainable_hrc.safety_decision_node:main',
             'worker_motion_node = '
             'explainable_hrc.worker_motion_node:main',
+            'prolog_explanation_bridge = '
+            'explainable_hrc.prolog_explanation_bridge:main',
         ],
     },
 )
