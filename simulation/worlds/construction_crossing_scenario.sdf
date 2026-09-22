@@ -116,6 +116,50 @@
       </link>
     </model>
 
+    <!-- Only the active safety beacon is moved above the robot at runtime. -->
+    <model name="safety_beacon_go">
+      <static>true</static><pose>0 0 -2 0 0 0</pose>
+      <link name="link"><visual name="visual">
+        <geometry><sphere><radius>0.22</radius></sphere></geometry>
+        <material><ambient>0.02 1 0.02 1</ambient><diffuse>0.02 1 0.02 1</diffuse><emissive>0.02 1 0.02 1</emissive></material>
+      </visual></link>
+    </model>
+    <model name="safety_beacon_slow">
+      <static>true</static><pose>0 0 -2 0 0 0</pose>
+      <link name="link"><visual name="visual">
+        <geometry><sphere><radius>0.22</radius></sphere></geometry>
+        <material><ambient>1 0.8 0.02 1</ambient><diffuse>1 0.8 0.02 1</diffuse><emissive>1 0.8 0.02 1</emissive></material>
+      </visual></link>
+    </model>
+    <model name="safety_beacon_stop">
+      <static>true</static><pose>0 0 -2 0 0 0</pose>
+      <link name="link"><visual name="visual">
+        <geometry><sphere><radius>0.22</radius></sphere></geometry>
+        <material><ambient>1 0.02 0.02 1</ambient><diffuse>1 0.02 0.02 1</diffuse><emissive>1 0.02 0.02 1</emissive></material>
+      </visual></link>
+    </model>
+    <model name="safety_beacon_wait">
+      <static>true</static><pose>0 0 -2 0 0 0</pose>
+      <link name="link"><visual name="visual">
+        <geometry><sphere><radius>0.22</radius></sphere></geometry>
+        <material><ambient>1 0.8 0.02 1</ambient><diffuse>1 0.8 0.02 1</diffuse><emissive>1 0.8 0.02 1</emissive></material>
+      </visual></link>
+    </model>
+    <model name="safety_beacon_resume">
+      <static>true</static><pose>0 0 -2 0 0 0</pose>
+      <link name="link"><visual name="visual">
+        <geometry><sphere><radius>0.22</radius></sphere></geometry>
+        <material><ambient>0.02 1 0.02 1</ambient><diffuse>0.02 1 0.02 1</diffuse><emissive>0.02 1 0.02 1</emissive></material>
+      </visual></link>
+    </model>
+    <model name="safety_beacon_goal_reached">
+      <static>true</static><pose>0 0 -2 0 0 0</pose>
+      <link name="link"><visual name="visual">
+        <geometry><sphere><radius>0.22</radius></sphere></geometry>
+        <material><ambient>0.02 1 0.02 1</ambient><diffuse>0.02 1 0.02 1</diffuse><emissive>0.02 1 0.02 1</emissive></material>
+      </visual></link>
+    </model>
+
     <model name="minimal_robot">
       <pose>0 0 0.11 0 0 0</pose>
       <link name="chassis">

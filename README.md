@@ -44,6 +44,11 @@ A read-only bridge independently checks each latest trace with Prolog and
 publishes its decision, consistency result, Why, and Why-not terms on
 `/prolog_explanation`. It never publishes robot motion commands.
 
+The sphere above the robot uses three safety colours: green for movement
+(`GO`, `RESUME`, `GOAL_REACHED`), yellow for restricted operation (`SLOW`,
+`WAIT`), and red for `STOP`. Concise transition explanations are published on
+`/safety_explanation_text`; the text retains all six state names.
+
 ```bash
 docker compose -f docker/compose.yaml exec ros2-desktop bash -lc \
   'source /opt/ros/jazzy/setup.bash && source /home/ubuntu/ros2_ws/install/setup.bash && ros2 topic echo /prolog_explanation std_msgs/msg/String'
